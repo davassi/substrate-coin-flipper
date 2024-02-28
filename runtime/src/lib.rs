@@ -49,6 +49,8 @@ pub use sp_runtime::{Perbill, Permill};
 /// Import the template pallet.
 pub use pallet_template;
 
+use frame_support::PalletId;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -253,6 +255,10 @@ parameter_types! {
 	pub FeeMultiplier: Multiplier = Multiplier::one();
 }
 
+parameter_types! {
+	pub const CoinFlipperPalletId: PalletId = PalletId(*b"coinflip");
+}
+
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
@@ -272,6 +278,7 @@ impl pallet_sudo::Config for Runtime {
 impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
+	type PalletId = CoinFlipperPalletId;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
