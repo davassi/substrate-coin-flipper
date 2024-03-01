@@ -51,6 +51,8 @@ pub use pallet_template;
 
 use frame_support::PalletId;
 
+pub use pallet_insecure_randomness_collective_flip;
+
 /// An index to a block.
 pub type BlockNumber = u32;
 
@@ -279,11 +281,17 @@ impl pallet_template::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = pallet_template::weights::SubstrateWeight<Runtime>;
 	type PalletId = CoinFlipperPalletId;
+	type MyRandomness = RandomnessCollectiveFlip;
+}
+
+impl pallet_insecure_randomness_collective_flip::Config for Runtime {
+	
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
+		RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,
 		System: frame_system,
 		Timestamp: pallet_timestamp,
 		Aura: pallet_aura,
@@ -291,8 +299,10 @@ construct_runtime!(
 		Balances: pallet_balances,
 		TransactionPayment: pallet_transaction_payment,
 		Sudo: pallet_sudo,
+		//RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,
 		// Include the custom logic from the pallet-template in the runtime.
 		TemplateModule: pallet_template,
+		
 	}
 );
 

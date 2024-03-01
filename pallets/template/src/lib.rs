@@ -23,8 +23,9 @@ pub mod pallet {
 	use frame_support::sp_runtime::traits::AccountIdConversion;
 	use frame_support::pallet_prelude::{OptionQuery, *};
 	use frame_support::PalletId;
+	use frame_support::traits::Randomness;
 	use frame_system::pallet_prelude::*;
-
+	
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
@@ -37,17 +38,19 @@ pub mod pallet {
 
 		#[pallet::constant]
 		type PalletId: Get<PalletId>;
+
+		type MyRandomness: Randomness<Self::Hash, u32>;
 	}
 
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo, PartialOrd, Default)]
-	enum CoinFace {
+	enum CoinSide {
 		#[default]
 		Head,
 		Tail,
 	}
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo, PartialOrd, Default)]
 	pub struct Coin {
-		side: CoinFace,
+		side: CoinSide,
 	}
 	
 	#[pallet::storage]
@@ -56,13 +59,14 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		CoinCreated { something: u32, who: AccountIdOf<T> },
+		CoinCreated { who: AccountIdOf<T> },
 		CoinFlipped { who: AccountIdOf<T> },
 		CoinTossed { who: AccountIdOf<T> },
 	}
 
 	#[pallet::error]
 	pub enum Error<T> {
+		CoinAlreadyExists,
 		CoinDoesNotExist,
 	}
 
@@ -71,10 +75,10 @@ pub mod pallet {
 
 		#[pallet::call_index(0)]
 		#[pallet::weight(T::WeightInfo::do_something())]
-		pub fn create_coin(origin: OriginFor<T>, something: u32) -> DispatchResult {
+		pub fn create_coin(origin: OriginFor<T>) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::do_create_coin(&who)?;
-			Self::deposit_event(Event::CoinCreated { something, who });
+			Self::deposit_event(Event::CoinCreated { who });
 			Ok(())
 		}
 
@@ -103,31 +107,68 @@ pub mod pallet {
 			T::PalletId::get().into_account_truncating()
 		}
 
+		// This method creates a new coin for the given account
 		pub fn do_create_coin(account_id: &T::AccountId) -> DispatchResult {
+
+			if CoinStorage::<T>::contains_key(account_id) {
+				// If a coin already exists, return an error
+				return Err(Error::<T>::CoinAlreadyExists.into());
+			} 
 			
-			CoinStorage::<T>::insert(account_id, Coin { side: CoinFace::Head });
+			// Create a new coin
+			CoinStorage::<T>::insert(account_id, Coin::default());
 			Ok(())
 		}
 
+		// This method flips the coin for the given account
 		pub fn do_flip_coin(account_id: &T::AccountId) -> DispatchResult {
 			
-			let coin = CoinStorage::<T>::get(account_id)
+			// If a coin does not exist, return an error
+			let mut coin = CoinStorage::<T>::get(account_id)
 				.ok_or(Error::<T>::CoinDoesNotExist)?;
 
-			let new_side = match coin.side {
-				CoinFace::Head => CoinFace::Tail,
-				CoinFace::Tail => CoinFace::Head,
+			// Flip the coin
+			coin.side = match coin.side {
+				CoinSide::Head => CoinSide::Tail,
+				CoinSide::Tail => CoinSide::Head,
 			};
-			CoinStorage::<T>::insert(account_id, Coin { side: new_side });
+			
+			// Update the coin
+			CoinStorage::<T>::insert(account_id, coin);
 			
 			Ok(())
 		}
 
+		// This method tosses the coin for the given account
 		pub fn do_toss_coin(account_id: &T::AccountId) -> DispatchResult {
-			let coin = CoinStorage::<T>::get(account_id)
+			let mut coin = CoinStorage::<T>::get(account_id)
 				.ok_or(Error::<T>::CoinDoesNotExist)?;
+
+			let blockumber = <frame_system::Pallet<T>>::block_number();
+			
+			// Use the random value to decide the coin's new side
+			// This is a simplistic approach; your actual implementation may vary based on your randomness source
+			let new_side = if Self::generate_insecure_random_boolean(0) == true {
+				CoinSide::Head
+			} else {
+				CoinSide::Tail
+			};
+		
+			// Update the coin's side
+			coin.side = new_side;
+			CoinStorage::<T>::insert(account_id, coin);
 			
 			Ok(())
+		}
+
+		// You should call this function with different seed values 	
+		pub fn generate_insecure_random_boolean(seed: u32) -> bool {
+			let (random_seed, _) = T::MyRandomness::random(&(T::PalletId::get(), seed).encode());
+			let random_number = <u32>::decode(&mut random_seed.as_ref())
+				.expect("secure hashes should always be bigger than u32; qed");
+			random_number % 2 == 0
 		}
 	}
+
+
 }
