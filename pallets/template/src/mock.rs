@@ -46,8 +46,8 @@ impl frame_system::Config for Test {
 impl pallet_template::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
-//	type PalletId = ();
-//	type MyRandomness;
+	type PalletId = TemplateModule;
+	type MyRandomness;
 }
 
 // Build genesis storage according to the mock runtime.
