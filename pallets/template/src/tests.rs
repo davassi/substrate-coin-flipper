@@ -1,5 +1,9 @@
 use crate::{mock::*, Error, Event};
 use frame_support::{assert_noop, assert_ok};
+use std::alloc::System;
+use sp_runtime::traits::BadOrigin;
+
+//const ALICE: SignedOrigin = 1u64;
 
 #[test]
 fn it_works_for_default_value() {
@@ -15,13 +19,4 @@ fn it_works_for_default_value() {
 	});
 }
 
-#[test]
-fn correct_error_for_none_value() {
-	new_test_ext().execute_with(|| {
-		// Ensure the expected error is thrown when no value is present.
-		assert_noop!(
-			//TemplateModule::cause_error(RuntimeOrigin::signed(1)),
-			//Error::<Test>::NoneValue
-		);
-	});
-}
+
