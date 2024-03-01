@@ -179,7 +179,7 @@ pub mod pallet {
 			let seed = block_number.try_into().unwrap_or_else(|_| 0u32);
 
 			// Use the random value to decide the coin's new side
-			// This is very a simpcalistic approach that uses blocknunber as seed source. Never use it in production. 
+			// This is very a simple approach that uses blocknunber as seed source. Never use it in production. 
 			let new_side = if Self::generate_insecure_random_boolean(seed) == true {
 				CoinSide::Head
 			} else {
@@ -201,6 +201,4 @@ pub mod pallet {
 			random_number % 2 == 0
 		}
 	}
-
-
 }
