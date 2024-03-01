@@ -53,26 +53,43 @@ pub mod pallet {
 		side: CoinSide,
 	}
 	
+	// The pallet's runtime storage items.
+	//
+	// StorageMap { Account => Coin }: Each Account has a Coin
 	#[pallet::storage]
 	pub type CoinStorage<T> = StorageMap<_, Blake2_128Concat, AccountIdOf<T>, Coin, OptionQuery>;
 
+	// Pallets use events to inform users when important changes are made.
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
+		// Event emitted when a coin is created. 
 		CoinCreated { who: AccountIdOf<T> },
+		// Event emitted when a coin is flipped. 
 		CoinFlipped { who: AccountIdOf<T> },
+		// Event emitted when a coin is tossed. 
 		CoinTossed { who: AccountIdOf<T> },
 	}
 
+	// Errors inform users that something went wrong.
 	#[pallet::error]
 	pub enum Error<T> {
+		// Error returned when a coin already exists
 		CoinAlreadyExists,
+		// Error returned when a coin does not exist
 		CoinDoesNotExist,
 	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 
+		/// Create a coin for the sender's account and save it in the StorageMap
+		///
+		/// - `origin`: The sender's account
+		/// 
+		/// It generates a new event when a coin is created
+		/// - Event: `CoinCreated`
+		///
 		#[pallet::call_index(0)]
 		#[pallet::weight(T::WeightInfo::do_something())]
 		pub fn create_coin(origin: OriginFor<T>) -> DispatchResult {
@@ -82,6 +99,13 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Flip the coin (head to tail or tail to head) and update the StorageMap
+		///
+		/// - origin: The sender's account
+		///
+		/// It generates a new event when a coin is flipped
+		/// - Event: `CoinFlipped`
+		///
 		#[pallet::call_index(1)]
 		#[pallet::weight(T::WeightInfo::do_something())]
 		pub fn do_flip(origin: OriginFor<T>) -> DispatchResult {
@@ -91,6 +115,13 @@ pub mod pallet {
 			Ok(())
 		}
 
+		/// Toss the coin for the sender
+		///
+		/// - origin: The sender's account
+		///
+		/// It generates a new event when a coin is tossed
+		/// - Event: `CoinTossed`
+		///
 		#[pallet::call_index(2)]
 		#[pallet::weight(T::WeightInfo::cause_error())]
 		pub fn do_toss(origin: OriginFor<T>) -> DispatchResult {
@@ -144,11 +175,12 @@ pub mod pallet {
 			let mut coin = CoinStorage::<T>::get(account_id)
 				.ok_or(Error::<T>::CoinDoesNotExist)?;
 
-			let blockumber = <frame_system::Pallet<T>>::block_number();
-			
+			let block_number = <frame_system::Pallet<T>>::block_number();
+			let seed = block_number.try_into().unwrap_or_else(|_| 0u32);
+
 			// Use the random value to decide the coin's new side
-			// This is a simplistic approach; your actual implementation may vary based on your randomness source
-			let new_side = if Self::generate_insecure_random_boolean(0) == true {
+			// This is very a simpcalistic approach that uses blocknunber as seed source. Never use it in production. 
+			let new_side = if Self::generate_insecure_random_boolean(seed) == true {
 				CoinSide::Head
 			} else {
 				CoinSide::Tail
