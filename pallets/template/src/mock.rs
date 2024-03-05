@@ -5,9 +5,8 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use std::alloc::System;
 use sp_runtime::traits::BlockNumberProvider;
-   |
+
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
@@ -46,13 +45,22 @@ impl frame_system::Config for Test {
 }
 
 
+impl pallet_template::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	type PalletId = TemplateModule;
+	type MyRandomness = TestRandomness<Self>;
+}
+
+// Build genesis storage according to the mock runtime.
+pub fn new_test_ext() -> sp_io::TestExternalities {
+	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+}
 
 //
 // Mock implementations
 //
-
-/// Provides an implementation of [`frame_support::traits::Randomness`] that should only be used in
-/// tests!
+/// Provides an implementation of [`frame_support::traits::Randomness`] that should only be used in tests!
 pub struct TestRandomness<T>(frame_support::pallet_prelude::PhantomData<T>);
 
 impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber>
@@ -68,17 +76,4 @@ where
 			frame_system::Pallet::<T>::block_number(),
 		)
 	}
-}
-
-
-impl pallet_template::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
-	type PalletId = TemplateModule;
-	type MyRandomness = TestRandomness<Self>;
-}
-
-// Build genesis storage according to the mock runtime.
-pub fn new_test_ext() -> sp_io::TestExternalities {
-	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
 }
