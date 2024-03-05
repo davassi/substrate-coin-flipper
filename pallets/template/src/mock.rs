@@ -1,11 +1,10 @@
 use crate as pallet_template;
-use frame_support::traits::{ConstU16, ConstU64};
+use frame_support::{parameter_types,traits::{ConstU16, ConstU64}, PalletId};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
 };
-use sp_runtime::traits::BlockNumberProvider;
 
 type Block = frame_system::mocking::MockBlock<Test>;
 
@@ -44,11 +43,15 @@ impl frame_system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
+parameter_types! {
+	pub const CoinFlipperPalletId: PalletId = PalletId(*b"coinflip");
+}
+
 
 impl pallet_template::Config for Test {
+	type PalletId = CoinFlipperPalletId;
 	type RuntimeEvent = RuntimeEvent;
 	type WeightInfo = ();
-	type PalletId = TemplateModule;
 	type MyRandomness = TestRandomness<Self>;
 }
 
@@ -57,18 +60,21 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
 }
 
+
 //
 // Mock implementations
 //
-/// Provides an implementation of [`frame_support::traits::Randomness`] that should only be used in tests!
+
+use frame_system::pallet_prelude::BlockNumberFor;
+
 pub struct TestRandomness<T>(frame_support::pallet_prelude::PhantomData<T>);
 
-impl<Output: codec::Decode + Default, T> frame_support::traits::Randomness<Output, T::BlockNumber>
-	for TestRandomness<T>
+impl<Output: codec::Decode + Default, T>
+	frame_support::traits::Randomness<Output, BlockNumberFor<T>> for TestRandomness<T>
 where
-	T: frame_system::Config  + BlockNumberProvider,
+	T: frame_system::Config,
 {
-	fn random(subject: &[u8]) -> (Output, T::BlockNumber) {
+	fn random(subject: &[u8]) -> (Output, BlockNumberFor<T>) {
 		use sp_runtime::traits::TrailingZeroInput;
 
 		(

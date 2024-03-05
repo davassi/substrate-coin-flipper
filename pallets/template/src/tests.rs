@@ -8,13 +8,18 @@ const ALICE: SignedOrigin = 1u64;
 
 #[test]
 fn create_coin_test() {
+	// New test environment because we are testing the runtime module.
 	new_test_ext().execute_with(|| {
 		
+		// Set the block number to 1.
 		System::set_block_number(1);
 		
+		// we simulate a signed origin 
 		let origin = RuntimeOrigin::signed(ALICE);
 
+		// Call the create_coin function
 		let result = TemplateModule::create_coin(origin);
+		// 
 		assert_ok!(result);
 
 		System::assert_has_event(Event::CoinCreated { who: ALICE }.into());
@@ -39,7 +44,7 @@ fn create_coin_twice_test() {
 		
 		let origin = RuntimeOrigin::signed(ALICE);
 
-		let result = TemplateModule::create_coin(origin);
+		let result = TemplateModule::create_coin(origin.clone());
 		assert_ok!(result);
 
 		let result = TemplateModule::create_coin(origin);
@@ -55,7 +60,7 @@ fn flip_coin_test() {
 		
 		let origin = RuntimeOrigin::signed(ALICE);
 
-		let result = TemplateModule::create_coin(origin);
+		let result = TemplateModule::create_coin(origin.clone());
 		assert_ok!(result);
 
 		let result = TemplateModule::do_flip(origin);
@@ -96,7 +101,7 @@ fn toss_coin_test() {
 		
 		let origin = RuntimeOrigin::signed(ALICE);
 
-		let result = TemplateModule::create_coin(origin);
+		let result = TemplateModule::create_coin(origin.clone());
 		assert_ok!(result);
 
 		let result = TemplateModule::do_toss(origin);
@@ -130,22 +135,6 @@ fn toss_coin_without_creating_a_coin_test() {
 }
 
 #[test]
-fn toss_coin_with_an_error_test() {
-	new_test_ext().execute_with(|| {
-		
-		System::set_block_number(1);
-		
-		let origin = RuntimeOrigin::signed(ALICE);
-
-		let result = TemplateModule::create_coin(origin);
-		assert_ok!(result);
-
-		let result = TemplateModule::do_toss(origin);
-		assert_noop!(result, Error::<Test>::CoinDoesNotExist);
-	});
-}
-
-#[test]
 fn create_coin_and_flip_coin_test() {
 	new_test_ext().execute_with(|| {
 		
@@ -153,7 +142,7 @@ fn create_coin_and_flip_coin_test() {
 		
 		let origin = RuntimeOrigin::signed(ALICE);
 
-		let result = TemplateModule::create_coin(origin);
+		let result = TemplateModule::create_coin(origin.clone());
 		assert_ok!(result);
 
 		let result = TemplateModule::do_flip(origin);
@@ -172,7 +161,7 @@ fn create_coin_and_toss_coin_test() {
 		
 		let origin = RuntimeOrigin::signed(ALICE);
 
-		let result = TemplateModule::create_coin(origin);
+		let result = TemplateModule::create_coin(origin.clone());
 		assert_ok!(result);
 
 		let result = TemplateModule::do_toss(origin);
@@ -191,10 +180,10 @@ fn create_coin_and_flip_coin_and_toss_coin_test() {
 		
 		let origin = RuntimeOrigin::signed(ALICE);
 
-		let result = TemplateModule::create_coin(origin);
+		let result = TemplateModule::create_coin(origin.clone());
 		assert_ok!(result);
 
-		let result = TemplateModule::do_flip(origin);
+		let result = TemplateModule::do_flip(origin.clone());
 		assert_ok!(result);
 
 		let result = TemplateModule::do_toss(origin);

@@ -39,7 +39,7 @@ pub mod pallet {
 		#[pallet::constant]
 		type PalletId: Get<PalletId>;
 
-		type MyRandomness: Randomness<Self::Hash, u32>;
+		type MyRandomness: Randomness<Self::Hash, BlockNumberFor<Self>>;
 	}
 
 	#[derive(Clone, Encode, Decode, Eq, PartialEq, RuntimeDebug, MaxEncodedLen, TypeInfo, PartialOrd, Default)]

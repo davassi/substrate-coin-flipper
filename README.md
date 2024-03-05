@@ -18,10 +18,20 @@ Use the following command to build the node without launching it:
 cargo build --release
 ```
 
-Start with:
+### Test
+
+Use the following command to run the regression tests:
 
 ```sh
-./target/release/node-template --dev
+cargo test
+```
+
+### Start
+
+To start the node (in development mode), just type:
+
+```sh
+cargo run --dev
 ```
 
 ### Connect with Polkadot-JS Apps Front-End
