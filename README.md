@@ -1,7 +1,7 @@
 
 # substrate-coin-flipper
 
-Project to learn how to create a substrate node by developing a custom Pallet that creates, flips and tosses a coin.
+*Substrate-coin-flipper* is a project to learn how to create a substrate node by developing a custom Pallet that creates, flips and tosses a coin.
 
 Why a coin flipper? It's a [common smart contract example](https://github.com/paritytech/ink-playgroung-flipper/blob/main/lib.rs) rewritten for Substrate, with logic to flip a coin at random and lots of testing.
 
